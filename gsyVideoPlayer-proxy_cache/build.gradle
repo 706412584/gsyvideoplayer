@@ -1,0 +1,16 @@
+apply from: "$rootDir/gradle/lib.gradle"
+apply from: "$rootDir/gradle/publish.gradle"
+
+android {
+    namespace 'shuyu.com.androidvideocache'
+    buildFeatures.buildConfig = true
+    defaultConfig {
+        buildConfigField "String", "LIBRARY_VERSION", '"1.0.0"'
+    }
+}
+
+ext {
+    PROJ_GROUP = 'io.github.706412584'
+    PROJ_ARTIFACTID = 'gsyVideoPlayer-proxy_cache'
+    PROJ_VERSION = rootProject.ext.pomVersion
+}

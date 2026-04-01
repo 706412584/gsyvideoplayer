@@ -1,0 +1,80 @@
+import java.nio.charset.StandardCharsets
+
+apply plugin: "maven-publish"
+apply plugin: "signing"
+
+// 判断发布目标：github 或 mavenCentral
+def publishTarget = project.findProperty("PUBLISH_TARGET") ?: "github"
+
+afterEvaluate {
+    publishing {
+        publications {
+            if (publishTarget == "mavenCentral") {
+            mavenCentral(MavenPublication) {
+                from components.release
+
+                // 使用 Maven Central 专用的 GROUP ID
+                groupId = project.findProperty("PROJ_GROUP_MAVEN_CENTRAL") ?: "io.github.carguo"
+                artifactId = PROJ_ARTIFACTID
+                version = PROJ_VERSION
+
+                pom {
+                    name = PROJ_NAME
+                    description = PROJ_DESCRIPTION
+                    url = PROJ_VCSURL
+                    licenses {
+                        license {
+                            name = "The Apache License, Version 2.0"
+                            url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = DEVELOPER_ID
+                            name = DEVELOPER_NAME
+                        }
+                    }
+                    scm {
+                        connection = PROJ_ISSUETRACKERURL
+                        developerConnection = PROJ_VCSURL
+                        url = PROJ_WEBSITEURL
+                    }
+                }
+            }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "sonatype"
+                url = version.endsWith('SNAPSHOT') 
+                    ? "https://central.sonatype.com/repository/maven-snapshots/"
+                    : "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+                
+                credentials {
+                    username = System.getenv("MAVEN_CENTRAL_USERNAME") ?: project.findProperty("ossrhUsername")
+                    password = System.getenv("MAVEN_CENTRAL_PASSWORD") ?: project.findProperty("ossrhPassword")
+                }
+            }
+        }
+    }
+    
+    if (publishTarget == "mavenCentral") {
+        signing {
+            def signingKeyBase64 = System.getenv("GPG_PRIVATE_KEY")
+            def signingPassword = System.getenv("GPG_PASSPHRASE")
+
+            if (signingKeyBase64 != null && signingPassword != null) {
+                def signingKey = new String(Base64.getMimeDecoder().decode(signingKeyBase64), StandardCharsets.UTF_8)
+                useInMemoryPgpKeys(signingKey, signingPassword)
+                sign publishing.publications.mavenCentral
+            }
+        }
+    }
+
+    // Guard: the 'mavenCentral' publication (io.github.carguo group) is for Maven Central only.
+    // Disable the task that would accidentally publish it to GitHub Packages.
+    tasks.matching { it.name == "publishMavenCentralPublicationToGsyvideoplayerRepository" }.configureEach {
+        enabled = false
+    }
+}

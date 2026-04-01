@@ -1,0 +1,23 @@
+apply from: "$rootDir/gradle/lib.gradle"
+apply from: "$rootDir/gradle/publish.gradle"
+
+android {
+    namespace 'com.shuyu.gsyvideoplayer'
+}
+
+ext {
+    PROJ_GROUP = 'io.github.706412584'
+    PROJ_ARTIFACTID = 'gsyVideoPlayer-java'
+    PROJ_VERSION = rootProject.ext.pomVersion
+}
+
+dependencies {
+    api project(":gsyVideoPlayer-base")
+    api project(":gsyVideoPlayer-proxy_cache")
+    api 'androidx.appcompat:appcompat:1.6.0'
+    api 'androidx.transition:transition:1.4.1'
+    api 'androidx.core:core:1.7.0'
+    api 'androidx.recyclerview:recyclerview:1.2.1'
+    api 'com.github.bumptech.glide:glide:4.12.0'
+    api 'com.github.bumptech.glide:okhttp3-integration:4.12.0'
+}

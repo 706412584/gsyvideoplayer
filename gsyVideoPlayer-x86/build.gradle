@@ -1,0 +1,12 @@
+apply from: "$rootDir/gradle/lib.gradle"
+apply from: "$rootDir/gradle/publish.gradle"
+
+android {
+    namespace 'com.shuyu.gsyvideoplayer.x86'
+}
+
+ext {
+    PROJ_GROUP = 'io.github.706412584'
+    PROJ_ARTIFACTID = 'gsyVideoPlayer-x86'
+    PROJ_VERSION = rootProject.ext.pomVersion
+}

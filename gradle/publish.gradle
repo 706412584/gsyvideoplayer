@@ -1,0 +1,70 @@
+apply plugin: "maven-publish"
+
+android {
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+
+// 判断发布目标：github 或 mavenCentral
+// 通过 Gradle 属性 PUBLISH_TARGET 控制，默认为 github
+def publishTarget = project.findProperty("PUBLISH_TARGET") ?: "github"
+
+afterEvaluate {
+    publishing {
+        publications {
+            if (publishTarget == "github") {
+                release(MavenPublication) {
+                    from components.release
+
+                    groupId = project.findProperty("PROJ_GROUP") ?: "com.shuyu"
+                    artifactId = PROJ_ARTIFACTID
+                    version = PROJ_VERSION
+
+                    pom {
+                        name = PROJ_NAME
+                        description = PROJ_DESCRIPTION
+                        url = PROJ_VCSURL
+                        licenses {
+                            license {
+                                name = "The Apache License, Version 2.0"
+                                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = DEVELOPER_ID
+                                name = DEVELOPER_NAME
+                            }
+                        }
+                        scm {
+                            connection = PROJ_ISSUETRACKERURL
+                            developerConnection = PROJ_VCSURL
+                            url = PROJ_WEBSITEURL
+                        }
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = "gsyvideoplayer"
+                url = "https://maven.pkg.github.com/CarGuo/GSYVideoPlayer"
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
+
+    // Guard: the 'release' publication (com.shuyu group) is for GitHub Packages only.
+    // Disable the task that would accidentally publish it to Maven Central's Sonatype repository.
+    tasks.matching { it.name == "publishReleasePublicationToSonatypeRepository" }.configureEach {
+        enabled = false
+    }
+}
